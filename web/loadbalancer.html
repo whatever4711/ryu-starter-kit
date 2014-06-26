@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>SDN Hub starter kit</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="/web/css/pure-min-0.5.0.css">
+    <link rel="stylesheet" href="/web/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/web/css/pure-custom.css">
+    <link rel="stylesheet" href="/web/css/joint.all.min.css">
+  </head>
+
+  <body>
+
+  <div class="header">
+      <div id="menu">
+      <div class="home-menu pure-menu pure-menu-open pure-menu-horizontal pure-menu-fixed">
+          <img src="/web/img/sdnhub_logo.png" style="height:40px;vertical-align:middle;">
+          <a class="pure-menu-heading" href="">SDN Hub Controller</a>
+      </div>
+  </div>
+  </div>
+
+  <div id="layout">
+  <div id="menu">
+      <div class="pure-menu pure-menu-open">
+          <ul>
+              <li class=" ">
+                  <a href="/web/index.html">Topology
+                  <i class="fa fa-home"></i></a>
+              </li>
+              <li class=" ">
+                  <a href="/web/stats.html">Statistics
+                  <i class="fa fa-bar-chart-o"></i></a>
+              </li>
+              <li class=" ">
+                  <a href="/web/tap.html">Manage Tap
+                  <i class="fa fa-edit"></i></a>
+              </li>
+              <li class="menu-item-divided pure-menu-selected">
+                  <a href="/web/loadbalancer.html">Load balancer
+                  <i class="fa fa-sitemap"></i></a>
+              </li>
+ </ul>
+ </div>
+ </div>
+
+ <div id="main">
+        <h2>Load-balancer Configuration</h2>
+        <p>Following form allows create a pool for a stateless server
+        load-balancer that assigns each incoming request to
+        a different server within the pool. Current implementation only
+        allows a single server pool, and does not work in a network with
+        loops. Current implementation only load-balances TCP requests.</p>
+
+<form class="pure-form pure-form-aligned">
+    <fieldset>
+            <div class="pure-control-group">
+                <label>Virtual IP</label>
+                <input id="virtual-ip" type="text" placeholder="VIP" required>
+            </div>
+
+            <div class="pure-control-group">
+                <label>Server pool</label>
+                <select id="servers" style="width:12em;" multiple>
+                </select>
+            </div>
+
+            <div class="pure-controls">
+                   <input id="rewrite-ip" checked type="checkbox">
+                   Rewrite IP addresses because servers<br>
+                   are not configured with VIP as alias IP.
+            </div>
+    </fieldset>
+</form>
+    <div class="pure-controls">
+        <button href="#" class="pure-button pure-button-primary"
+            onclick="createLBPool()">Create</button>
+        <button href="#" class="pure-button pure-button-primary"
+            onclick="deleteLBPool()">Delete</button>
+    </div>
+    <div id="post-status">
+    </div>
+  </div><!-- main -->
+  </div><!--layout -->
+  <div class="footer">
+	  <p class="legal-copyright">
+	  © 2014 SDN Hub. All rights reserved.
+	  </p>
+  </div>
+
+  <script src="/web/js/jquery.min.js"></script>
+  <script src="/web/js/utils.js"></script>
+  <script src="/web/js/loadbalancer.js"></script>
+  </body>
+</html>
