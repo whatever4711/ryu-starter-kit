@@ -11,11 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 # implied.
 
+import logging
+import random
+
 from ryu.base import app_manager
 from ryu.controller import ofp_event
 from ryu.controller.handler import CONFIG_DISPATCHER, MAIN_DISPATCHER, DEAD_DISPATCHER
 from ryu.controller.handler import set_ev_cls
 from ryu.ofproto import ofproto_v1_3
+from ryu.lib import ofctl_v1_3
 from ryu.ofproto import ether, inet
 from ryu.lib.packet import packet
 from ryu.lib.packet import ethernet
@@ -26,6 +30,8 @@ from ryu.lib.packet import arp
 DEFAULT_IDLE_TIMEOUT = 60
 DEFAULT_HARD_TIMEOUT = 300
 
+LOG = logging.getLogger('ryu.app.sdnhub_apps.learning_switch')
+
 class L2LearningSwitch(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
 
@@ -33,7 +39,13 @@ class L2LearningSwitch(app_manager.RyuApp):
         super(L2LearningSwitch, self).__init__(*args, **kwargs)
         self.mac_to_port = {}
         self.exemption = []
+        self.switch_flows = {}
 
+    def get_switch_flows(self):
+        return self.switch_flows
+
+    def get_switch_flows(self, dpid):
+        return self.switch_flows[dpid]
 
     def add_exemption(self, match=None):
         if match != None:
@@ -106,10 +118,24 @@ class L2LearningSwitch(app_manager.RyuApp):
         else:
             inst = []
 
-        mod = ofp_parser.OFPFlowMod(datapath=datapath, priority=priority, buffer_id=buffer_id,
-                                match=match, idle_timeout=idle_timeout,
-                                hard_timeout=hard_timeout, instructions=inst)
+        cookie = random.randint(0, 0xffffffffffffffff)
+
+        mod = ofp_parser.OFPFlowMod(datapath=datapath, priority=priority,
+                buffer_id=buffer_id,cookie=cookie,
+                match=match, idle_timeout=idle_timeout,
+                hard_timeout=hard_timeout, instructions=inst,
+                flags=ofp.OFPFF_SEND_FLOW_REM)
+
         datapath.send_msg(mod)
+
+        match_str = ofctl_v1_3.match_to_str(match),
+        self.switch_flows[datapath.id].append({'cookie':cookie,
+                                               'match':match_str,
+                                               'actions':actions,
+                                               'priority':priority})
+
+        LOG.debug("Flow inserted to switch %x: cookie=%s, match=%s, actions=%s, priority=%d",
+                                  datapath.id, str(cookie), match_str, str(actions), priority)
 
 
     @set_ev_cls(ofp_event.EventOFPStateChange,
@@ -122,16 +148,18 @@ class L2LearningSwitch(app_manager.RyuApp):
             ofp = datapath.ofproto
             ofp_parser = datapath.ofproto_parser
 
+            self.mac_to_port.setdefault(datapath.id, {})
+            self.switch_flows.setdefault(datapath.id, [])
+
             # install table-miss flow entry
             match = ofp_parser.OFPMatch()
             actions = [ofp_parser.OFPActionOutput(ofp.OFPP_CONTROLLER, ofp.OFPCML_NO_BUFFER)]
             self.add_flow(datapath=datapath, priority=0, match=match, actions=actions)
 
-            self.mac_to_port.setdefault(datapath.id, {})
-
         elif ev.state == DEAD_DISPATCHER:
             if datapath.id != None:
                 del self.mac_to_port[datapath.id]
+                del self.switch_flows[datapath.id]
 
 
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
@@ -201,3 +229,26 @@ class L2LearningSwitch(app_manager.RyuApp):
         out = ofp_parser.OFPPacketOut(datapath=datapath, buffer_id=msg.buffer_id,
                                   in_port=in_port, actions=actions, data=data)
         datapath.send_msg(out)
+
+    @set_ev_cls(ofp_event.EventOFPFlowRemoved, MAIN_DISPATCHER)
+    def flow_removed_handler(self, ev):
+        msg = ev.msg
+        dpid = msg.datapath.id
+        cookie = msg.cookie
+        match_str = ofctl_v1_3.match_to_str(msg.match)
+        index_to_delete = None
+
+        # Ensure that the flow removed is for a known switch
+        if dpid not in self.switch_flows:
+            return
+
+        for index, flow in enumerate(self.switch_flows[dpid]):
+            if flow['cookie'] == cookie:
+                index_to_delete = index
+                break
+
+        if index_to_delete is not None:
+            del self.switch_flows[dpid][index_to_delete]
+            LOG.debug("Flow removed on switch %d: match=%s, cookie=%s",
+                    dpid, match_str, cookie)
+
