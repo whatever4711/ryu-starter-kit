@@ -24,6 +24,7 @@ from ryu.lib.packet import tcp
 from ryu.lib.packet import arp
 
 DEFAULT_IDLE_TIMEOUT = 60
+DEFAULT_HARD_TIMEOUT = 300
 
 class L2LearningSwitch(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
@@ -96,7 +97,7 @@ class L2LearningSwitch(app_manager.RyuApp):
         
 
     def add_flow(self, datapath, priority=ofproto_v1_3.OFP_DEFAULT_PRIORITY, match=None,
-                  actions=None,idle_timeout=0, buffer_id=ofproto_v1_3.OFP_NO_BUFFER):
+                  actions=None,idle_timeout=0, hard_timeout=0, buffer_id=ofproto_v1_3.OFP_NO_BUFFER):
         ofp = datapath.ofproto
         ofp_parser = datapath.ofproto_parser
 
@@ -106,7 +107,8 @@ class L2LearningSwitch(app_manager.RyuApp):
             inst = []
 
         mod = ofp_parser.OFPFlowMod(datapath=datapath, priority=priority, buffer_id=buffer_id,
-                                match=match, idle_timeout=idle_timeout, instructions=inst)
+                                match=match, idle_timeout=idle_timeout,
+                                hard_timeout=hard_timeout, instructions=inst)
         datapath.send_msg(mod)
 
 
@@ -183,6 +185,7 @@ class L2LearningSwitch(app_manager.RyuApp):
             self.add_flow(datapath=datapath, priority=2,
                     match=match, actions=actions,
                     idle_timeout=DEFAULT_IDLE_TIMEOUT,
+                    hard_timeout=DEFAULT_HARD_TIMEOUT,
                     buffer_id=msg.buffer_id)
 
             # Are we done, or do we need to forward this packet?
