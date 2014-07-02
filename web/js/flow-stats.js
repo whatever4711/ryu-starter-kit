@@ -23,6 +23,7 @@ function updateFlowStats() {
 
     $.getJSON(url.concat("/stats/switches"), function(switches){
         $.each(switches, function(index, dpid){
+            var hex_dpid = parseInt(dpid).toString(16);
 
             $.getJSON(url.concat("/stats/flow/").concat(dpid), function(flows) {
                 var flowStats = flows[dpid];
@@ -30,7 +31,7 @@ function updateFlowStats() {
                 var tr = document.createElement('TR');
                 var numFlows = 0;
                 var switchColTd = document.createElement('TD');
-                switchColTd.appendChild(document.createTextNode(dpid));
+                switchColTd.appendChild(document.createTextNode(hex_dpid));
                 tr.appendChild(switchColTd);
 
                 var td;

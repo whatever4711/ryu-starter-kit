@@ -22,7 +22,7 @@ var graph = new joint.dia.Graph;
 var erd = joint.shapes.erd;
 
 var element = function(elm, x, y, label) {
-    var cell = new elm({ position: { x: x, y: y }, size: { width: 100, height: 30 },
+    var cell = new elm({ position: { x: x, y: y }, size: { width: 150, height: 30 },
 	      attrs: { text: { text: label }}});
 	
 	cell.attr({
@@ -49,7 +49,8 @@ var link = function(elm1, elm2) {
 };
 
 var getSwitchDesc = function(dpid) {
-    $.getJSON(url.concat("/stats/desc/").concat(dpid), function(descs){
+    var ofctl_dpid = parseInt(dpid, 16);
+    $.getJSON(url.concat("/stats/desc/").concat(ofctl_dpid), function(descs){
 	    $.each(descs, function(key, value){
             var valueJson = JSON.stringify(value);
             var switchDesc = JSON.parse(valueJson);
@@ -80,6 +81,7 @@ var setSwitchTooltip = function() {
                              '<tr><td>S/w version:</td><td>' + value.desc.sw_desc + '</td></tr>' +
                              '<tr><td>Vendor:</td><td>' + value.desc.mfr_desc + '</td></tr>' +
                              '<tr><td>Serial #:</td><td>' + value.desc.serial_num + '</td></tr>' +
+                             '<tr><td>Description:</td><td>' + value.desc.dp_desc + '</td></tr>' +
                              '</table>',
                     top: rectDom,
                     direction: 'top'
@@ -160,10 +162,7 @@ var drawLinks = function() {
             var valueJson = JSON.stringify(value);
             var obj = JSON.parse(valueJson);
 
-            //Kludge. Maybe only specific to mininet
-            var switchName = obj.src.name.split('-')[0];
-            var portname = obj.src.name.split('-')[1];
-
+            var portname = obj.src.name;
             link(switchList[obj.src.dpid]['element'],
                  switchList[obj.dst.dpid]['element']).cardinality(portname);
 		});
@@ -195,10 +194,6 @@ $.getJSON(url.concat("/v1.0/topology/switches"), function(switches){
         switchList[obj.dpid] = {}
 
         var switchName = obj.dpid; 
-        if (obj.ports.length > 0) {
-            //Kludge. Maybe only specific to mininet
-		    switchName = obj.ports[0].name.split('-')[0];
-        }
         switchList[obj.dpid]['name'] = switchName;
 
         var x = 200 + 150 * (index % 4);
