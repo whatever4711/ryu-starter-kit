@@ -175,7 +175,7 @@ $(function()  {
 
     var paper = new joint.dia.Paper({
             el: paperScroller.el,
-            width: 1200,
+            width: 2400,
             height: 800,
             model: graph
     });
@@ -183,7 +183,6 @@ $(function()  {
     paperScroller.options.paper = paper;
     $('#paper-container').append(paperScroller.render().el);
     paper.on('blank:pointerdown', paperScroller.startPanning);
-    paperScroller.center();
 
 $.getJSON(url.concat("/v1.0/topology/switches"), function(switches){
 	var counter = 0;
