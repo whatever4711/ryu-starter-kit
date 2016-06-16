@@ -71,7 +71,7 @@ class StatelessLB(app_manager.RyuApp):
         self.learning_switch.clear_exemption()
         self.learning_switch.add_exemption({'dl_dst': self.virtual_mac})
 
-    # Users can skip doing header rewriting by setting the virtual IP 
+    # Users can skip doing header rewriting by setting the virtual IP
     # as an alias IP on all the servers. This works well in single subnet
     def set_rewrite_ip_flag(self, rewrite_ip):
         if rewrite_ip == 1:
@@ -135,7 +135,7 @@ class StatelessLB(app_manager.RyuApp):
                         arp_hdr.src_ip)
 
                 actions = [ofp_parser.OFPActionOutput(in_port)]
-                out = ofp_parser.OFPPacketOut(datapath=datapath, 
+                out = ofp_parser.OFPPacketOut(datapath=datapath,
                            in_port=ofp.OFPP_ANY, data=reply_pkt.data,
                            actions=actions, buffer_id = UINT32_MAX)
                 datapath.send_msg(out)
@@ -150,11 +150,11 @@ class StatelessLB(app_manager.RyuApp):
 
         # Only handle traffic destined to virtual IP
         if (iphdr.dst != self.virtual_ip):
-            return 
+            return
 
         # Only handle TCP traffic
         if iphdr.proto != inet.IPPROTO_TCP:
-            return 
+            return
 
         tcphdr = pkt.get_protocols(tcp.tcp)[0]
 
@@ -177,11 +177,11 @@ class StatelessLB(app_manager.RyuApp):
         selected_server_mac = valid_servers[index]['mac']
         selected_server_outport = valid_servers[index]['outport']
         self.server_index += 1
-        print "Selected server", selected_server_ip
+        print("Selected server %s" % selected_server_ip)
 
         ########### Setup route to server
         match = ofp_parser.OFPMatch(in_port=in_port,
-                eth_type=eth.ethertype,  eth_src=eth.src,    eth_dst=eth.dst, 
+                eth_type=eth.ethertype,  eth_src=eth.src,    eth_dst=eth.dst,
                 ip_proto=iphdr.proto,    ipv4_src=iphdr.src, ipv4_dst=iphdr.dst,
                 tcp_src=tcphdr.src_port, tcp_dst=tcphdr.dst_port)
 
@@ -203,7 +203,7 @@ class StatelessLB(app_manager.RyuApp):
 
         ########### Setup reverse route from server
         match = ofp_parser.OFPMatch(in_port=selected_server_outport,
-                eth_type=eth.ethertype,  eth_src=selected_server_mac, eth_dst=eth.src, 
+                eth_type=eth.ethertype,  eth_src=selected_server_mac, eth_dst=eth.src,
                 ip_proto=iphdr.proto,    ipv4_src=selected_server_ip, ipv4_dst=iphdr.src,
                 tcp_src=tcphdr.dst_port, tcp_dst=tcphdr.src_port)
 
@@ -222,4 +222,3 @@ class StatelessLB(app_manager.RyuApp):
         mod = ofp_parser.OFPFlowMod(datapath=datapath, match=match, idle_timeout=10,
                 instructions=inst, cookie=cookie)
         datapath.send_msg(mod)
-

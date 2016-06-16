@@ -96,7 +96,7 @@ class StatelessLBController(ControllerBase):
     def delete_loadbalancer(self, req, **_kwargs):
         try:
             lb_config = eval(req.body)
-            print lb_config
+            print(lb_config)
             if not self.is_config_data_valid(lb_config):
                 return Response(status=400)
 
@@ -141,5 +141,3 @@ class StatelessLBRestApi(app_manager.RyuApp):
         mapper.connect('loadbalancer', '/v1.0/loadbalancer/delete',
                        controller=StatelessLBController, action='delete_loadbalancer',
                        conditions=dict(method=['POST']))
-
-

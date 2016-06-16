@@ -107,13 +107,13 @@ class TapController(ControllerBase):
                     if nw_proto != inet.IPPROTO_TCP and nw_proto != inet.IPPROTO_UDP:
                         LOG.error('Non TCP/UDP packet specifies TP fields')
                         return False
-                        
+
         return True
 
     def create_tap(self, req, **_kwargs):
         try:
             filter_data = eval(req.body)
-            print filter_data
+            print(filter_data)
             if not self.is_filter_data_valid(filter_data):
                 return Response(status=400)
         except SyntaxError:
@@ -169,5 +169,3 @@ class TapRestApi(app_manager.RyuApp):
         mapper.connect('tap', '/v1.0/tap/delete',
                        controller=TapController, action='delete_tap',
                        conditions=dict(method=['POST']))
-
-
