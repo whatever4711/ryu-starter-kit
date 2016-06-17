@@ -44,13 +44,13 @@ class HostTracker(app_manager.RyuApp):
 
     def expireHostEntries(self):
         expiredEntries = []
-        for key,val in self.hosts.iteritems():
+        for key,val in self.hosts.items():
             if int(time.time()) > val['timestamp'] + self.IDLE_TIMEOUT:
                 expiredEntries.append(key)
 
         for ip in expiredEntries:
             del self.hosts[ip]
-        
+
         Timer(self.IDLE_TIMEOUT, self.expireHostEntries).start()
 
     # The hypothesis is that a router will be the srcMAC
@@ -60,7 +60,7 @@ class HostTracker(app_manager.RyuApp):
            return True
 
         ip_list = []
-        for key,val in self.hosts.iteritems():
+        for key,val in self.hosts.items():
             if val['mac'] == mac:
                 ip_list.append(key)
 
@@ -98,7 +98,7 @@ class HostTracker(app_manager.RyuApp):
             srcIP = ip.src
         else:
             return
-        
+
         if self.isRouter(srcMac):
             return
 
@@ -109,4 +109,3 @@ class HostTracker(app_manager.RyuApp):
         # DHCP reassigned the IP or the host moved
         self.hosts[srcIP]['mac'] = srcMac
         self.updateHostTable(srcIP, dpid_lib.dpid_to_str(datapath.id), in_port)
-

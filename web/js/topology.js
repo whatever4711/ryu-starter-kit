@@ -24,7 +24,7 @@ var erd = joint.shapes.erd;
 var element = function(elm, x, y, label) {
     var cell = new elm({ position: { x: x, y: y }, size: { width: 150, height: 30 },
 	      attrs: { text: { text: label }}});
-	
+
 	cell.attr({
 		  rect: { fill: '#2C3E50', rx: 5, ry: 5, 'stroke-width': 2, stroke: 'black' },
 	      text: {
@@ -32,18 +32,21 @@ var element = function(elm, x, y, label) {
 	          'font-size': 16, 'font-weight': 'bold', 'font-variant': 'small-caps', 'text-transform': 'capitalize'
 	      }
 	  });
-	
+
     graph.addCell(cell);
     return cell;
 };
 
 var link = function(elm1, elm2) {
-    var cell = new erd.Line({ source: { id: elm1.id }, target: { id: elm2.id }, 
+    console.log("Draw line between ")
+    console.log(elm1)
+    console.log(elm2)
+    var cell = new erd.Line({ source: { id: elm1.id }, target: { id: elm2.id },
         attrs : { '.connection': { stroke: 'blue' } },
         labels: [{ text: {'font-size': 10 } },
                  { text: {'font-size': 10 } }]
     });
-
+    console.log(cell)
     graph.addCell(cell);
     return cell;
 };
@@ -54,6 +57,7 @@ var getSwitchDesc = function(dpid) {
 	    $.each(descs, function(key, value){
             var valueJson = JSON.stringify(value);
             var switchDesc = JSON.parse(valueJson);
+
             switchList[dpid]['desc'] = switchDesc;
         });
     }).then(setSwitchTooltip);
@@ -75,7 +79,7 @@ var setSwitchTooltip = function() {
         if (rectDom != undefined && value.desc != undefined) {
             value['tooltip'] = new joint.ui.Tooltip({
                     target: rectDom,
-                    content: '<span>Switch ' + value['name'] + '</span>' + 
+                    content: '<span>Switch ' + value['name'] + '</span>' +
                              '<hr><table>' +
                              '<tr><td>H/w type:</td><td>' + value.desc.hw_desc + '</td></tr>' +
                              '<tr><td>S/w version:</td><td>' + value.desc.sw_desc + '</td></tr>' +
@@ -93,14 +97,14 @@ var setSwitchTooltip = function() {
 var hostCleanup = function(currentHosts) {
     $.each(hostList, function(key, value){
         value.tooltip.remove();
-        value.link.remove();
+        //value.link.remove();
         if (!(key in currentHosts))
             value.element.remove();
     });
 };
 
 var drawHosts = function() {
-	srcSwitch = {}; 
+	srcSwitch = {};
 	dstSwitch = {};
 
 	$.getJSON(url.concat("/v1.0/hosts"), function(hosts){
@@ -109,7 +113,7 @@ var drawHosts = function() {
 
 	    $.each(hosts, function(key, value){
             //Do all common stuff for an IP
-            if (!(key in hostList)) 
+            if (!(key in hostList))
                 hostList[key] = {};
 
             if (!('element' in hostList[key])) {
@@ -146,8 +150,8 @@ var drawHosts = function() {
                         top: hostDom,
                         direction: 'top'
                 });
-    
-                hostList[key]['link'] =link(switchList[value.dpid]['element'], cell);
+
+                //hostList[key]['link'] =link(switchList[value.dpid]['element'], cell);
             }
 		});
         joint.layout.DirectedGraph.layout(graph, { setLinkVertices: false, edgeSep: 20, rankSep: 80, nodeSep: 50 });
@@ -155,7 +159,7 @@ var drawHosts = function() {
 };
 
 var drawLinks = function() {
-	srcSwitch = {}; 
+	srcSwitch = {};
 	dstSwitch = {};
 	$.getJSON(url.concat("/v1.0/topology/links"), function(links){
 	    $.each(links, function(key, value){
@@ -163,8 +167,8 @@ var drawLinks = function() {
             var obj = JSON.parse(valueJson);
 
             var portname = obj.src.name;
-            link(switchList[obj.src.dpid]['element'],
-                 switchList[obj.dst.dpid]['element']).cardinality(portname);
+            //link(switchList[obj.src.dpid]['element'],
+              //   switchList[obj.dst.dpid]['element']).cardinality(portname);
 		});
         joint.layout.DirectedGraph.layout(graph, { setLinkVertices: false, edgeSep: 20, rankSep: 80, nodeSep: 80 });
 	}).then(drawHosts);
@@ -192,7 +196,7 @@ $.getJSON(url.concat("/v1.0/topology/switches"), function(switches){
 
         switchList[obj.dpid] = {}
 
-        var switchName = obj.dpid; 
+        var switchName = obj.dpid;
         switchList[obj.dpid]['name'] = switchName;
 
         var x = 200 + 150 * (index % 4);
@@ -201,11 +205,11 @@ $.getJSON(url.concat("/v1.0/topology/switches"), function(switches){
 
         getSwitchDesc(obj.dpid);
 
-    });	
+    });
 }).then(drawLinks);
 
-paper.on('cell:pointerdown', 
-    function(cellView, evt, x, y) { 
+paper.on('cell:pointerdown',
+    function(cellView, evt, x, y) {
         $.each(switchList, function(key, value) {
           if (value.id == cellView.model.id) {
             console.log("Clicked " + key);

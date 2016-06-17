@@ -62,7 +62,7 @@ class HostTrackerController(ControllerBase):
             return Response(status=404)
 
         switch_hosts = {}
-        for key,val in self.host_tracker.hosts.iteritems():
+        for key,val in self.host_tracker.hosts.items():
             if val['dpid']== dpid_lib.dpid_to_str(dp.id):
                 switch_hosts[key] = val
 

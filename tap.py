@@ -54,7 +54,7 @@ class StarterTap(app_manager.RyuApp):
     @set_ev_cls(ofp_event.EventOFPErrorMsg, [HANDSHAKE_DISPATCHER, CONFIG_DISPATCHER, MAIN_DISPATCHER])
     def error_msg_handler(self, ev):
         msg = ev.msg
-      
+
         LOG.info('OFPErrorMsg received: type=0x%02x code=0x%02x message=%s',
                         msg.type, msg.code, ryu.utils.hex_array(msg.data))
 
@@ -89,7 +89,7 @@ class StarterTap(app_manager.RyuApp):
         filter_data.setdefault('fields', {})
         filter_fields = filter_data['fields']
 
-        for key, val in self.broadened_field.iteritems():
+        for key, val in self.broadened_field.items():
             if key in filter_fields:
                 for new_val in val:
                     filter_data['fields'] = self.change_field(filter_fields, key, new_val)
@@ -143,7 +143,7 @@ class StarterTap(app_manager.RyuApp):
 
                 # install the flow in the switch
                 mod = ofproto_parser.OFPFlowMod(
-                            datapath=datapath, match=match, 
+                            datapath=datapath, match=match,
                             command=ofproto.OFPFC_ADD, idle_timeout=0, hard_timeout=0,
                             instructions=inst, cookie=cookie)
 
@@ -164,7 +164,7 @@ class StarterTap(app_manager.RyuApp):
         filter_data.setdefault('fields', {})
         filter_fields = filter_data['fields']
 
-        for key, val in self.broadened_field.iteritems():
+        for key, val in self.broadened_field.items():
             if key in filter_fields:
 
                 for new_val in val:
@@ -188,11 +188,10 @@ class StarterTap(app_manager.RyuApp):
 
             ofproto = datapath.ofproto
             ofproto_parser = datapath.ofproto_parser
-                    
+
             match = ofctl_v1_3.to_match(datapath, filter_fields)
 
             mod = ofproto_parser.OFPFlowMod(datapath=datapath, command=ofproto.OFPFC_DELETE,
                           match = match, out_port=ofproto.OFPP_ANY,out_group=ofproto.OFPG_ANY)
 
             datapath.send_msg(mod)
-
