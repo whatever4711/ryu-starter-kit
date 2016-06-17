@@ -25,29 +25,30 @@ var element = function(elm, x, y, label) {
     var cell = new elm({ position: { x: x, y: y }, size: { width: 150, height: 30 },
 	      attrs: { text: { text: label }}});
 
-	cell.attr({
+  	cell.attr({
 		  rect: { fill: '#2C3E50', rx: 5, ry: 5, 'stroke-width': 2, stroke: 'black' },
 	      text: {
 	          fill: 'white',
 	          'font-size': 16, 'font-weight': 'bold', 'font-variant': 'small-caps', 'text-transform': 'capitalize'
 	      }
 	  });
-
     graph.addCell(cell);
     return cell;
 };
 
 var link = function(elm1, elm2) {
-    console.log("Draw line between ")
-    console.log(elm1)
-    console.log(elm2)
+
     var cell = new erd.Line({ source: { id: elm1.id }, target: { id: elm2.id },
         attrs : { '.connection': { stroke: 'blue' } },
         labels: [{ text: {'font-size': 10 } },
                  { text: {'font-size': 10 } }]
     });
-    console.log(cell)
-    graph.addCell(cell);
+
+    try {
+        graph.addCell(cell);
+    } catch (e) {
+      console.log(e);
+    }
     return cell;
 };
 
@@ -97,7 +98,11 @@ var setSwitchTooltip = function() {
 var hostCleanup = function(currentHosts) {
     $.each(hostList, function(key, value){
         value.tooltip.remove();
-        //value.link.remove();
+        try {
+        value.link.remove();
+      } catch (e) {
+        console.log(e);
+      }
         if (!(key in currentHosts))
             value.element.remove();
     });
@@ -150,11 +155,19 @@ var drawHosts = function() {
                         top: hostDom,
                         direction: 'top'
                 });
-
-                //hostList[key]['link'] =link(switchList[value.dpid]['element'], cell);
+                
+                try{
+                hostList[key]['link'] =link(switchList[value.dpid]['element'], cell);
+              }catch(e){
+                console.log(e);
+              }
             }
 		});
+    try {
         joint.layout.DirectedGraph.layout(graph, { setLinkVertices: false, edgeSep: 20, rankSep: 80, nodeSep: 50 });
+      } catch (e) {
+        console.log(e)
+      }
 	});
 };
 
@@ -167,10 +180,16 @@ var drawLinks = function() {
             var obj = JSON.parse(valueJson);
 
             var portname = obj.src.name;
-            //link(switchList[obj.src.dpid]['element'],
-              //   switchList[obj.dst.dpid]['element']).cardinality(portname);
+
+
+            link(switchList[obj.src.dpid]['element'],
+                 switchList[obj.dst.dpid]['element']).cardinality(portname);
 		});
+    try{
         joint.layout.DirectedGraph.layout(graph, { setLinkVertices: false, edgeSep: 20, rankSep: 80, nodeSep: 80 });
+      } catch (e) {
+        console.log(e)
+      }
 	}).then(drawHosts);
 }
 
@@ -201,9 +220,12 @@ $.getJSON(url.concat("/v1.0/topology/switches"), function(switches){
 
         var x = 200 + 150 * (index % 4);
         var y = 100 + 150 * Math.floor(index/4);
-		switchList[obj.dpid]['element'] = element(joint.shapes.basic.Rect, x, y, switchName);
+
+        //console.log("DPID: " + obj.dpid + " X = "+x + " Y = "+y)
+		    switchList[obj.dpid]['element'] = element(joint.shapes.basic.Rect, x, y, switchName);
 
         getSwitchDesc(obj.dpid);
+        //console.log(switchList[obj.dpid]['element'])
 
     });
 }).then(drawLinks);

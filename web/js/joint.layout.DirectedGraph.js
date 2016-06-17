@@ -1,4 +1,4 @@
-/*! JointJS v0.9.0 - JavaScript diagramming library  2014-05-13 
+/*! JointJS v0.9.0 - JavaScript diagramming library  2014-05-13
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -68,7 +68,7 @@ module.exports = function() {
   // External configuration
   var config = {
     // How much debug information to include?
-    debugLevel: 0,
+    debugLevel: 2,
     // Max number of sweeps to perform in order phase
     orderMaxSweeps: order.DEFAULT_MAX_SWEEPS,
     // Use network simplex algorithm in ranking
@@ -1347,7 +1347,7 @@ function acyclic(g) {
   var onStack = {},
       visited = {},
       reverseCount = 0;
-  
+
   function dfs(u) {
     if (u in visited) return;
     visited[u] = onStack[u] = true;
@@ -1793,7 +1793,7 @@ function initCutValues(graph, spanningTree) {
  */
 function computeLowLim(tree) {
   var postOrderNum = 0;
-  
+
   function dfs(n) {
     var children = tree.successors(n);
     var low = postOrderNum;
@@ -2874,7 +2874,7 @@ Digraph.prototype.isDirected = function() {
 /*
  * Returns all successors of the node with the id `u`. That is, all nodes
  * that have the node `u` as their source are returned.
- * 
+ *
  * If no node `u` exists in the graph this function throws an Error.
  *
  * @param {String} u a node id
@@ -2888,7 +2888,7 @@ Digraph.prototype.successors = function(u) {
 /*
  * Returns all predecessors of the node with the id `u`. That is, all nodes
  * that have the node `u` as their target are returned.
- * 
+ *
  * If no node `u` exists in the graph this function throws an Error.
  *
  * @param {String} u a node id
@@ -4057,7 +4057,7 @@ joint.layout.DirectedGraph = {
         if (opt.nodeSep) { runner.nodeSep(opt.nodeSep); }
 
         var layoutGraph = runner.run(inputGraph);
-        
+
         layoutGraph.eachNode(function(u, value) {
             if (!value.dummy) {
                 graph.get('cells').get(u).set('position', {
@@ -4079,7 +4079,7 @@ joint.layout.DirectedGraph = {
 
         return { width: layoutGraph.graph().width, height: layoutGraph.graph().height };
     },
-    
+
     _prepareData: function(graph) {
         var dagreGraph = new dagre.Digraph();
 
